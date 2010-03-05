@@ -10,3 +10,6 @@ pm_to_blib*
 cover_db
 pod2htm*.tmp
 ShipIt-Step-Readme-*
+*.kpf
+*META.yml
+MANIFEST.bak
