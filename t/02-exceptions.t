@@ -20,8 +20,8 @@ Perhaps a little code snippet.
 ~;
 
 throws_ok   sub { ShipIt::Step::Readme->_add_install_instructions($package_content) },
-            qr/trying to add pod Install section after NAME Section, but there is none/,
-            'no name dies';
+            qr/trying to add pod Install section after VERSION or NAME Section, but there is none/,
+            'no name or version dies';
 
 
 done_testing;

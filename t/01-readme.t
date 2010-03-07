@@ -35,7 +35,49 @@ To install this module, run the following commands:
 
 =head1 SYNOPSIS
 ~,
-    'Adding Install Instructions';
+    'Adding Install Instructions after NAME';
+
+################################################################################
+# adding Install instructions after VERSION
+$package_content = q~
+=head1 NAME
+
+ShipIt::Step::Readme
+
+=head1 VERSION
+
+Version 1.0
+
+=head1 SYNOPSIS
+~;
+
+$new_package = ShipIt::Step::Readme->_add_install_instructions($package_content);
+is  $new_package,
+    q~
+=head1 NAME
+
+ShipIt::Step::Readme
+
+=head1 VERSION
+
+Version 1.0
+
+=begin readme
+
+=head1 INSTALLATION
+
+To install this module, run the following commands:
+
+    perl Build.PL
+    ./Build
+    ./Build test
+    ./Build install
+
+=end readme
+
+=head1 SYNOPSIS
+~,
+    'Adding Install Instructions after VERSION';
 
 ################################################################################
 # don't overwrite existing Install instructions

@@ -6,7 +6,7 @@ use ShipIt::Util qw(slurp write_file);
 
 use base 'ShipIt::Step';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 $VERSION = eval $VERSION;
 
 ################################################################################
@@ -21,13 +21,10 @@ sub run {
     die "no file for distribution found", $self->{ver_from} unless ($dist_file);
 
     my $dist_content = slurp($dist_file);
-    if ($dist_content =~ /^=head1 INSTALL/mi) {
-        print "Installation Pod already created";
-        return 1;
+    if ($dist_content !~ /^=head1 INSTALL/mi) {
+        $dist_content = $self->_add_install_instructions($dist_content);
+        write_file($dist_file, $dist_content);
     }
-
-    $dist_content = $self->_add_install_instructions($dist_content);
-    write_file($dist_file, $dist_content);
 
     my $parser = Pod::Readme->new();
     $parser->parse_from_file($dist_file, 'README');
@@ -40,10 +37,9 @@ sub run {
 sub _add_install_instructions {
     my ($self, $dist_content) = @_;
     my $install = $self->_get_instructions;
-    if ($dist_content !~ s/(^=head\d NAME.*?(?=^=))/$1$install/sm) {
-        die ('trying to add pod Install section after NAME Section, but there is none');
-    }
-    return $dist_content;
+    return $dist_content if ($dist_content =~ s/(^=head\d VERSION.*?(?=^=))/$1$install/sm);
+    return $dist_content if ($dist_content =~ s/(^=head\d NAME.*?(?=^=))/$1$install/sm);
+    die ('trying to add pod Install section after VERSION or NAME Section, but there is none');
 }
 
 ################################################################################
@@ -74,15 +70,15 @@ sub _get_instructions {
         die ('only Build.PL and Makefile.PL are supported, but none was found');
     }
 
-    return qq~=begin readme
+    # little bit awkward, but Pod-Parsers don't check for Pod inside strings
+    my $pod  = "=begin readme\n\n";
+    $pod    .= "=head1 INSTALLATION\n\n";
+    $pod    .= "To install this module, run the following commands:\n";
+    $pod    .= "$instructions\n";
+    $pod    .= "=end readme\n\n";
 
-=head1 INSTALLATION
-
-To install this module, run the following commands:
-$instructions
-=end readme
-
-~;}
+    return $pod;
+}
 
 1;
 
@@ -92,26 +88,57 @@ ShipIt::Step::Readme - Automatically create README for your Perl Package before 
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
-=cut
+=begin readme
+
+=head1 INSTALLATION
+
+To install this module, run the following commands:
+
+    perl Build.PL
+    ./Build
+    ./Build test
+    ./Build install
+
+=end readme
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+Just add it to the ShipIt config, after all steps, that edit Pod, because
+the README file is generated from the Pod of the distris' main file.
 
-Perhaps a little code snippet.
+    steps = FindVersion, ChangeVersion, ChangePodVersion, Readme, ...
 
-    use ShipIt::Step::Readme;
-
-    my $foo = ShipIt::Step::Readme->new();
-    ...
+And make sure you have a VERSION or a NAME section in your Pod. The README pod,
+which is not visible on CPAN, is added after any of them.
 
 =head1 DESCRIPTION
 
+This ShipIt::Step autogenerates a README-file from your distris' main package.
+
+Therefore it adds a Pod INSTALLATION section, but only if it does not exist yet.
+It contains installation instructions, for either an installation via ./Build or
+an installation via make, depending on the existence of a Build.PL or a
+Makefile.PL. If neither is found, we die.
+
+The Pod INSTALLATION section is added after the Pod VERSION section, or in case
+it does not exist, after the Pod NAME section. If neither is found, we die.
+This section won't be visible on CPAN, and will only appear in your README.
+
 B<Run this after any ShipIt::Step, that edits Pod.> For example
 L<ShipIt::Step::ChangePodVersion> does that to add a Pod VERSION section
-to your module.
+to your module. Otherwise the changes made won't be reflected in your README.
+
+=head1 CONFIG
+
+Nothing to configure. Drop me an EMail if you have any wishes for configuration.
+
+=head1 WARNING
+
+This is not really tested with distris, which dont't use Build.PL. But from
+a logic point of view, there shouldn't be any problem. However, contact me if
+you encounter any problems.
 
 =head1 AUTHOR
 
@@ -151,10 +178,6 @@ L<http://cpanratings.perl.org/d/ShipIt-Step-Readme>
 L<http://search.cpan.org/dist/ShipIt-Step-Readme/>
 
 =back
-
-
-=head1 ACKNOWLEDGEMENTS
-
 
 =head1 LICENSE AND COPYRIGHT
 
