@@ -8,12 +8,13 @@ my $builder = Module::Build->new(
     dist_author         => q{Thomas Mueller <tmueller@cpan.org>},
     dist_version_from   => 'lib/ShipIt/Step/Readme.pm',
     build_requires => {qw~
-        Test::More      0
-        Test::Exception 0
+        Test::More      0.88
+        Test::Exception 0.29
     ~},
     requires    => {qw~
-        Pod::Readme     0
+        Pod::Readme     0.09
         ShipIt          0.53
+        
         base            0
         strict          0
     ~},

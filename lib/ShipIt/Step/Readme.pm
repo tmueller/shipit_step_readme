@@ -6,7 +6,7 @@ use ShipIt::Util qw(slurp write_file);
 
 use base 'ShipIt::Step';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 $VERSION = eval $VERSION;
 
 ################################################################################
@@ -88,7 +88,7 @@ ShipIt::Step::Readme - Automatically create README for your Perl Package before 
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =begin readme
 
